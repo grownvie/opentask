@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Mona Sans', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+                    url('https://cdn.glitch.global/5e9517da-1f3b-4c57-818a-13835d583e00/jigar-panchal-3I0x4p-AFhg-unsplash.jpg?v=1738361469715');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: #ffffff;
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(45, 45, 45, 0.95);
+        padding: 2rem;
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        position: relative;
+    }
+
+    h1 {
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        background: linear-gradient(45deg, #4a90e2, #2d5aa6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .input-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    #taskInput {
+        flex: 1;
+        padding: 1rem;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: #ffffff;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    #taskInput::placeholder {
+        color: rgba(255,255,255,0.7);
+    }
+
+    #taskInput:focus {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+    }
+
+    button {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #4a90e2, #2d5aa6);
+        color: white;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+    }
+
+    button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .task-list {
+        list-style: none;
+        margin-bottom: 2rem;
+    }
+
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .task-item:hover {
+        transform: translateX(8px);
+        border-color: #4a90e2;
+    }
+
+    .delete-btn {
+        background: linear-gradient(45deg, #ff4d4d, #cc0000);
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .storage-info {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 1rem;
+        }
+
+        .container {
+            padding: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .input-section {
+            flex-direction: column;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        background: linear-gradient(45deg, 
+            rgba(255,255,255,0.05), 
+            rgba(255,255,255,0.01));
+        backdrop-filter: blur(10px);
+        z-index: -1;
+    }
