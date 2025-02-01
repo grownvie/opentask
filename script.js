@@ -1,128 +1,107 @@
-document.addEventListener('DOMContentLoaded', () => {
-    loadTasks();
-    setInterval(updateStorageStatus, 5000);
-});
+let currentFilter = 'all';
 
-// Funções de Cookies
-function setCookie(name, value, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)};${expires};path=/`;
-}
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for(let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while(c.charAt(0) === ' ') c = c.substring(1);
-        if(c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
-    }
-    return null;
-}
-
-// Funções principais
 function addTask() {
-    const taskInput = document.getElementById('taskInput');
-    const taskText = taskInput.value.trim();
+    const title = document.getElementById('taskInput').value.trim();
+    const description = document.getElementById('taskDesc').value.trim();
 
-    if(!taskText) {
-        alert('Por favor, digite uma tarefa!');
+    if (!title) {
+        alert('Por favor, digite um título para a tarefa!');
         return;
     }
 
-    const taskList = document.getElementById('taskList');
-    
+    const task = {
+        title,
+        description,
+        completed: false,
+        id: Date.now()
+    };
+
+    addTaskToDOM(task);
+    saveTasks();
+    clearInputs();
+}
+
+function addTaskToDOM(task) {
     const li = document.createElement('li');
-    li.className = 'task-item';
+    li.className = `task-item ${task.completed ? 'completed' : ''}`;
+    li.dataset.id = task.id;
     li.innerHTML = `
-        <span>${taskText}</span>
-        <button class="delete-btn" onclick="deleteTask(this)">Excluir</button>
+        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+        <div class="task-content">
+            <div class="task-title">
+                ${task.title}
+            </div>
+            ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+        </div>
+        <button class="delete-btn" onclick="deleteTask(${task.id})">Excluir</button>
     `;
 
-    taskList.appendChild(li);
-    taskInput.value = '';
-    saveTasks();
+    document.getElementById('taskList').appendChild(li);
+    applyFilter();
 }
 
-function deleteTask(button) {
-    button.parentElement.remove();
-    saveTasks();
+function toggleTask(id) {
+    const tasks = getTasks();
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+        task.completed = !task.completed;
+        saveTasks(tasks);
+        refreshTaskList();
+    }
 }
 
-function deleteAllTasks() {
+function deleteTask(id) {
+    const tasks = getTasks().filter(t => t.id !== id);
+    saveTasks(tasks);
+    refreshTaskList();
+}
+
+function filterTasks(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(btn => 
+        btn.classList.remove('active'));
+    event.target.classList.add('active');
+    applyFilter();
+}
+
+function applyFilter() {
+    document.querySelectorAll('.task-item').forEach(item => {
+        const completed = item.querySelector('input').checked;
+        item.style.display = 
+            currentFilter === 'all' ? 'flex' :
+            currentFilter === 'completed' && completed ? 'flex' :
+            currentFilter === 'pending' && !completed ? 'flex' : 'none';
+    });
+}
+
+function getTasks() {
+    return JSON.parse(localStorage.getItem('tasks')) || [];
+}
+
+function saveTasks(tasks) {
+    tasks = tasks || Array.from(document.querySelectorAll('.task-item')).map(item => ({
+        id: Number(item.dataset.id),
+        title: item.querySelector('.task-title').textContent.trim(),
+        description: item.querySelector('.task-desc')?.textContent.trim() || '',
+        completed: item.querySelector('input').checked
+    }));
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function refreshTaskList() {
+    const tasks = getTasks();
     document.getElementById('taskList').innerHTML = '';
-    saveTasks();
+    tasks.forEach(addTaskToDOM);
+    applyFilter();
 }
 
-// Sistema de armazenamento
-function saveTasks() {
-    const tasks = [];
-    document.querySelectorAll('.task-item span').forEach(task => {
-        tasks.push(task.textContent);
-    });
-    
-    const data = JSON.stringify(tasks);
-    try {
-        localStorage.setItem('tasks', data);
-    } catch(e) {
-        console.log('Erro no localStorage, usando cookies:', e);
-    }
-    setCookie('todoList', data, 30);
-    updateStorageStatus();
+function clearInputs() {
+    document.getElementById('taskInput').value = '';
+    document.getElementById('taskDesc').value = '';
 }
 
-function loadTasks() {
-    let tasks = [];
-    
-    try {
-        const localData = localStorage.getItem('tasks');
-        if(localData) {
-            tasks = JSON.parse(localData);
-            document.getElementById('storageStatus').textContent = "Dados carregados do cache local";
-        } else {
-            const cookieData = getCookie('todoList');
-            if(cookieData) {
-                tasks = JSON.parse(cookieData);
-                localStorage.setItem('tasks', cookieData);
-                document.getElementById('storageStatus').textContent = "Dados carregados de cookies";
-            }
-        }
-    } catch(e) {
-        console.log('Erro ao carregar dados:', e);
-    }
-
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    tasks.forEach(taskText => {
-        const li = document.createElement('li');
-        li.className = 'task-item';
-        li.innerHTML = `
-            <span>${taskText}</span>
-            <button class="delete-btn" onclick="deleteTask(this)">Excluir</button>
-        `;
-        taskList.appendChild(li);
-    });
-
-    updateStorageStatus();
-}
-
-function updateStorageStatus() {
-    const statusElement = document.getElementById('storageStatus');
-    try {
-        if(localStorage.getItem('tasks')) {
-            statusElement.textContent = "Dados armazenados localmente e em cookies";
-        } else {
-            statusElement.textContent = "Armazenamento local não disponível, usando cookies";
-        }
-    } catch(e) {
-        statusElement.textContent = "Usando cookies como fallback";
-        console.log('Erro no localStorage:', e);
-    }
-}
-
-// Evento do Enter
-document.getElementById('taskInput').addEventListener('keypress', function(e) {
-    if(e.key === 'Enter') addTask();
-});
+// Carregar tarefas ao iniciar
+window.onload = () => {
+    getTasks().forEach(addTaskToDOM);
+    applyFilter();
+};

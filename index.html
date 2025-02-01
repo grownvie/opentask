@@ -1,38 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <!-- 
-      This is an HTML comment
-      You can write text in a comment and the content won't be visible in the page
-    -->
-
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="https://glitch.com/favicon.ico" />
-
-    <!--
-      This is the page head - it contains info the browser uses
-      Like the title, which appears on the browser tab but not inside the page
-      Further down you'll see the content that displays in the page
-    -->
-    <title>TarefaJS</title>
-
-    <!-- The website stylesheet -->
-    <link rel="stylesheet" href="/style.css" />
-
-    <!-- The website JavaScript file -->
-    <script src="/script.js" defer></script>
-  </head>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenTask</title>
+    <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="https://cdn.glitch.global/5e9517da-1f3b-4c57-818a-13835d583e00/favicon.png?v=1738364657878">
+</head>
 <body>
     <div class="container">
-        <h1>TaskJS</h1>
-        <div class="input-section">
-            <input type="text" id="taskInput" placeholder="Adicione uma nova tarefa...">
-            <button onclick="addTask()">Adicionar</button>
+        <h1>OpenTask</h1>
+        
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterTasks('all')">Todas</button>
+            <button class="filter-btn" onclick="filterTasks('completed')">Concluídas</button>
+            <button class="filter-btn" onclick="filterTasks('pending')">Pendentes</button>
         </div>
-      <div class="storage-info" id="storageStatus"></div>
+
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Título da tarefa">
+            <textarea id="taskDesc" placeholder="Descrição da tarefa (opcional)"></textarea>
+            <button onclick="addTask()">Adicionar Tarefa</button>
+        </div>
+
         <ul class="task-list" id="taskList"></ul>
-        <button class="delete-btn" onclick="deleteAllTasks()" style="width: 100%;">Limpar Tudo</button>
     </div>
-    </body>
+    <script src="script.js"></script>
+</body>
 </html>
