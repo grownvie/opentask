@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>opentask</title>
-    <!-- Fontes: Adwaita Sans (CDN) e Instrument Serif (Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -17,32 +15,27 @@
         <h1 class="logo">opentask</h1>
         
         <div class="form-group">
-            <!-- Título -->
             <div class="input-wrapper">
                 <i data-lucide="type" class="input-icon"></i>
                 <input type="text" id="taskTitle" placeholder="O que precisa ser feito?" autocomplete="off">
             </div>
             
-            <!-- Descrição -->
             <textarea id="taskDesc" placeholder="Detalhes (opcional)" rows="3"></textarea>
             
             <div class="row">
-                <!-- Data -->
                 <div class="input-wrapper flex-1">
                     <i data-lucide="calendar" class="input-icon"></i>
                     <input type="date" id="taskDate" class="date-input" title="Data de conclusão">
                 </div>
                 
-                <!-- Categoria Customizada -->
-                <div class="custom-select flex-2" id="categoryDropdown">
-                    <button class="select-trigger" id="categoryTrigger">
-                        <i data-lucide="tag" class="select-icon"></i>
-                        <span id="selectedCategoryText">Sem categoria</span>
-                        <i data-lucide="chevron-down" class="chevron"></i>
-                    </button>
-                    <div class="select-options hidden" id="categoryOptions">
-                        <!-- Opções geradas via JS -->
+                <div class="category-group flex-2">
+                    <div class="input-wrapper">
+                        <i data-lucide="tag" class="input-icon"></i>
+                        <select id="taskCategory"></select>
                     </div>
+                    <button id="addCategoryBtn" class="icon-btn" title="Nova Categoria">
+                        <i data-lucide="plus"></i>
+                    </button>
                 </div>
             </div>
             
@@ -73,7 +66,6 @@
         <ul id="taskList" class="task-list"></ul>
     </main>
 
-    <!-- Modal de Edição -->
     <div id="editModal" class="modal hidden">
         <div class="modal-content">
             <h2>Editar Tarefa</h2>
