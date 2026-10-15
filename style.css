@@ -1,8 +1,8 @@
 /* ===== Fallback confiável: Inter do Google Fonts ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap');
 
-/* ===== Finlandica Text via Google Fonts ===== */
-@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
+/* ===== Geist via Google Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* ===== Variáveis ===== */
 :root {
@@ -18,7 +18,7 @@
     --radius: 8px;
     --field-height: 56px;
     --pill-height: 44px;
-    --font-ui: 'Onest', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-ui: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color-scheme: dark;
 }
 
@@ -285,7 +285,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     position: relative;
 }
 
-/* Alinha o input de data do modal com o trigger compacto */
 .modal .row > .input-wrapper input {
     height: 52px;
     padding-top: 0;
@@ -572,17 +571,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     gap: 0.4rem;
     min-width: 0;
 }
-.task-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
+
+/* Título da tarefa */
 .task-title {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-main);
     word-break: break-word;
+}
+
+/* Linha de metadados (data + categoria) */
+.task-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
 }
 
 .task-category {

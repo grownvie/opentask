@@ -74,7 +74,7 @@ function addCategory() {
     }
 }
 
-// NOVO: apagar categoria por nome (exposto globalmente para o dropdown customizado)
+// Apagar categoria por nome (exposto globalmente para o dropdown customizado)
 window.deleteCategoryByName = function (name) {
     if (!name) return;
 
@@ -172,15 +172,18 @@ function render() {
 
     taskListEl.innerHTML = filtered.map(task => {
         const dateFormatted = task.date ? new Date(task.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+        const hasMeta = dateFormatted || task.category;
         return `
             <li class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
                 <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')">
                 <div class="task-content">
-                    <div class="task-header">
-                        <span class="task-title">${escapeHtml(task.title)}</span>
-                        ${dateFormatted ? `<span class="task-date"><i data-lucide="calendar"></i> ${dateFormatted}</span>` : ''}
-                        ${task.category ? `<span class="task-category">${escapeHtml(task.category)}</span>` : ''}
-                    </div>
+                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    ${hasMeta ? `
+                        <div class="task-meta">
+                            ${dateFormatted ? `<span class="task-date"><i data-lucide="calendar"></i> ${dateFormatted}</span>` : ''}
+                            ${task.category ? `<span class="task-category">${escapeHtml(task.category)}</span>` : ''}
+                        </div>
+                    ` : ''}
                     ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ''}
                 </div>
                 <div class="task-actions">
@@ -219,7 +222,7 @@ function setupEventListeners() {
 
     cancelEditBtn.addEventListener('click', closeEditModal);
     saveEditBtn.addEventListener('click', saveEdit);
-    editModal.addEventListener('click', e => { if (e.target === editModal) closeEditModal(); });
+    editModal.addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
 }
 
 init();
