@@ -28,15 +28,15 @@
                     <input type="date" id="taskDate" class="date-input">
                 </div>
                 
-                <div class="category-group flex-2">
-                    <div class="input-wrapper category-input">
-                        <i data-lucide="tag" class="input-icon"></i>
-                        <select id="taskCategory"></select>
-                    </div>
-                    <button type="button" id="addCategoryBtn" class="icon-btn" title="Nova Categoria">
-                        <i data-lucide="plus"></i>
-                    </button>
+                <div class="input-wrapper category-input flex-2">
+                    <i data-lucide="tag" class="input-icon"></i>
+                    <select id="taskCategory"></select>
                 </div>
+                
+                <!-- Botão mantido no DOM (o JS precisa dele), mas invisível -->
+                <button type="button" id="addCategoryBtn" class="icon-btn-hidden" aria-hidden="true" tabindex="-1">
+                    <i data-lucide="plus"></i>
+                </button>
             </div>
             
             <button id="addTaskBtn" class="btn-add">
@@ -89,5 +89,58 @@
     </div>
 
     <script src="script.js"></script>
+
+    <!-- ===== Script complementar: adiciona "+ Nova Categoria" dentro do select ===== -->
+    <!-- NÃO modifica o script.js — apenas usa o botão #addCategoryBtn que já existe -->
+    <script>
+        (function () {
+            const ADD_NEW_VALUE = '__new_category__';
+
+            function ensureAddOption() {
+                const select = document.getElementById('taskCategory');
+                if (!select) return;
+
+                // Remove a opção especial antiga (se existir) para evitar duplicatas
+                select.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
+
+                const option = document.createElement('option');
+                option.value = ADD_NEW_VALUE;
+                option.textContent = '+  Nova Categoria';
+                option.style.color = '#4c6ef5';
+                option.style.fontWeight = '600';
+                select.appendChild(option);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const select = document.getElementById('taskCategory');
+                const addBtn = document.getElementById('addCategoryBtn');
+                if (!select || !addBtn) return;
+
+                ensureAddOption();
+
+                // Sempre que o script.js recriar as opções, re-adicionamos a nossa
+                new MutationObserver(ensureAddOption).observe(select, { childList: true });
+
+                // Ao selecionar "+ Nova Categoria", dispara o botão oculto (que abre o prompt)
+                select.addEventListener('change', (e) => {
+                    if (e.target.value === ADD_NEW_VALUE) {
+                        const previous = select.dataset.prevValue || '';
+                        addBtn.click(); // Abre o prompt() do script.js
+
+                        // prompt() é bloqueante — o código abaixo só roda depois que o usuário responder
+                        if (select.value === ADD_NEW_VALUE) {
+                            // Usuário cancelou → restaura seleção anterior
+                            select.value = previous;
+                        } else {
+                            // Categoria criada com sucesso → guarda como valor anterior
+                            select.dataset.prevValue = select.value;
+                        }
+                    } else {
+                        select.dataset.prevValue = e.target.value;
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
