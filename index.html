@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>opentask</title>
+    <!-- Fontes: Adwaita Sans (CDN) e Instrument Serif (Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,19 +17,38 @@
         <h1 class="logo">opentask</h1>
         
         <div class="form-group">
-            <input type="text" id="taskTitle" placeholder="O que precisa ser feito?" autocomplete="off">
+            <!-- Título -->
+            <div class="input-wrapper">
+                <i data-lucide="type" class="input-icon"></i>
+                <input type="text" id="taskTitle" placeholder="O que precisa ser feito?" autocomplete="off">
+            </div>
+            
+            <!-- Descrição -->
             <textarea id="taskDesc" placeholder="Detalhes (opcional)" rows="3"></textarea>
             
             <div class="row">
-                <input type="date" id="taskDate" class="date-input" title="Data de conclusão">
-                <div class="category-wrapper">
-                    <select id="taskCategory"></select>
-                    <button id="addCategoryBtn" class="icon-btn" title="Nova Categoria">+</button>
-                    <button id="delCategoryBtn" class="icon-btn" title="Apagar Categoria Atual">−</button>
+                <!-- Data -->
+                <div class="input-wrapper flex-1">
+                    <i data-lucide="calendar" class="input-icon"></i>
+                    <input type="date" id="taskDate" class="date-input" title="Data de conclusão">
+                </div>
+                
+                <!-- Categoria Customizada -->
+                <div class="custom-select flex-2" id="categoryDropdown">
+                    <button class="select-trigger" id="categoryTrigger">
+                        <i data-lucide="tag" class="select-icon"></i>
+                        <span id="selectedCategoryText">Sem categoria</span>
+                        <i data-lucide="chevron-down" class="chevron"></i>
+                    </button>
+                    <div class="select-options hidden" id="categoryOptions">
+                        <!-- Opções geradas via JS -->
+                    </div>
                 </div>
             </div>
             
-            <button id="addTaskBtn" class="btn-add">Adicionar</button>
+            <button id="addTaskBtn" class="btn-add">
+                <i data-lucide="plus"></i> Adicionar
+            </button>
         </div>
     </aside>
 
@@ -37,8 +59,15 @@
                 <button class="filter-btn" data-filter="pending">Pendentes</button>
                 <button class="filter-btn" data-filter="completed">Concluídas</button>
             </div>
-            <input type="text" id="searchInput" placeholder="🔍 Buscar tarefas" autocomplete="off">
-            <button id="clearCompletedBtn" class="btn-clear">Limpar Concluídas</button>
+            
+            <div class="search-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar tarefas" autocomplete="off">
+            </div>
+            
+            <button id="clearCompletedBtn" class="btn-clear">
+                <i data-lucide="trash-2"></i> Limpar Concluídas
+            </button>
         </header>
 
         <ul id="taskList" class="task-list"></ul>
@@ -48,11 +77,17 @@
     <div id="editModal" class="modal hidden">
         <div class="modal-content">
             <h2>Editar Tarefa</h2>
-            <input type="text" id="editTitle" placeholder="Título">
+            <div class="input-wrapper">
+                <i data-lucide="type" class="input-icon"></i>
+                <input type="text" id="editTitle" placeholder="Título">
+            </div>
             <textarea id="editDesc" placeholder="Detalhes" rows="3"></textarea>
             <div class="row">
-                <input type="date" id="editDate">
-                <select id="editCategory"></select>
+                <div class="input-wrapper flex-1">
+                    <i data-lucide="calendar" class="input-icon"></i>
+                    <input type="date" id="editDate">
+                </div>
+                <select id="editCategory" class="flex-2"></select>
             </div>
             <div class="modal-actions">
                 <button id="cancelEditBtn" class="btn-cancel">Cancelar</button>

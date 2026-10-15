@@ -6,19 +6,23 @@ let categories = [];
 let currentFilter = 'all';
 let searchQuery = '';
 let editingId = null;
+let selectedCategory = '';
 
 // Elementos do DOM
 const taskListEl = document.getElementById('taskList');
 const taskTitleEl = document.getElementById('taskTitle');
 const taskDescEl = document.getElementById('taskDesc');
 const taskDateEl = document.getElementById('taskDate');
-const taskCategoryEl = document.getElementById('taskCategory');
 const addTaskBtn = document.getElementById('addTaskBtn');
-const addCategoryBtn = document.getElementById('addCategoryBtn');
-const delCategoryBtn = document.getElementById('delCategoryBtn');
 const searchInput = document.getElementById('searchInput');
 const clearCompletedBtn = document.getElementById('clearCompletedBtn');
 const filterBtns = document.querySelectorAll('.filter-btn');
+
+// Custom Select de Categoria
+const categoryDropdown = document.getElementById('categoryDropdown');
+const categoryTrigger = document.getElementById('categoryTrigger');
+const categoryOptions = document.getElementById('categoryOptions');
+const selectedCategoryText = document.getElementById('selectedCategoryText');
 
 // Elementos do Modal
 const editModal = document.getElementById('editModal');
@@ -35,6 +39,7 @@ function init() {
     renderCategories();
     render();
     setupEventListeners();
+    lucide.createIcons(); // Inicializa ícones do Lucide
 }
 
 function loadData() {
@@ -59,52 +64,64 @@ function saveCategories() {
     localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories));
 }
 
-// --- Categorias ---
+// --- Categorias Customizadas ---
 function renderCategories() {
+    // Renderiza opções no dropdown customizado
+    let optionsHtml = `<div class="option" data-value="">Sem categoria</div>`;
+    categories.forEach(cat => {
+        optionsHtml += `<div class="option" data-value="${cat}">${cat}</div>`;
+    });
+    optionsHtml += `<div class="option add-new" data-value="new"><i data-lucide="plus"></i> Nova Categoria</div>`;
+    categoryOptions.innerHTML = optionsHtml;
+
+    // Renderiza opções no select do modal (nativo)
     const defaultOption = '<option value="">Sem categoria</option>';
-    const options = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    const modalOptions = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    editCategory.innerHTML = defaultOption + modalOptions;
     
-    taskCategoryEl.innerHTML = defaultOption + options;
-    editCategory.innerHTML = defaultOption + options;
+    // Atualiza ícones dentro do dropdown
+    lucide.createIcons();
 }
 
-function addCategory() {
-    const newCat = prompt('Digite o nome da nova categoria:');
-    if (newCat && newCat.trim() !== '') {
-        const trimmed = newCat.trim();
-        if (!categories.includes(trimmed)) {
-            categories.push(trimmed);
-            saveCategories();
-            renderCategories();
-            taskCategoryEl.value = trimmed;
-        } else {
-            alert('Categoria já existe!');
-        }
+function selectCategory(value) {
+    selectedCategory = value;
+    selectedCategoryText.textContent = value || 'Sem categoria';
+    categoryDropdown.classList.remove('open');
+    categoryOptions.classList.add('hidden');
+}
+
+function toggleCategoryDropdown() {
+    const isHidden = categoryOptions.classList.contains('hidden');
+    if (isHidden) {
+        categoryDropdown.classList.add('open');
+        categoryOptions.classList.remove('hidden');
+    } else {
+        categoryDropdown.classList.remove('open');
+        categoryOptions.classList.add('hidden');
     }
 }
 
-function deleteCategory() {
-    const selectedCat = taskCategoryEl.value;
-    if (!selectedCat) {
-        alert('Selecione uma categoria para apagar.');
-        return;
-    }
-    
-    if (confirm(`Apagar a categoria "${selectedCat}"? As tarefas desta categoria ficarão "Sem categoria".`)) {
-        categories = categories.filter(c => c !== selectedCat);
-        saveCategories();
-        
-        // Atualizar tarefas que usavam essa categoria
-        tasks = tasks.map(task => {
-            if (task.category === selectedCat) {
-                task.category = '';
+function handleCategoryOptionClick(e) {
+    const option = e.target.closest('.option');
+    if (!option) return;
+
+    const value = option.dataset.value;
+
+    if (value === 'new') {
+        const newCat = prompt('Digite o nome da nova categoria:');
+        if (newCat && newCat.trim() !== '') {
+            const trimmed = newCat.trim();
+            if (!categories.includes(trimmed)) {
+                categories.push(trimmed);
+                saveCategories();
+                renderCategories();
+                selectCategory(trimmed);
+            } else {
+                alert('Categoria já existe!');
             }
-            return task;
-        });
-        
-        saveTasks();
-        renderCategories();
-        render();
+        }
+    } else {
+        selectCategory(value);
     }
 }
 
@@ -113,7 +130,7 @@ function addTask() {
     const title = taskTitleEl.value.trim();
     const description = taskDescEl.value.trim();
     const date = taskDateEl.value;
-    const category = taskCategoryEl.value;
+    const category = selectedCategory;
 
     if (!title) {
         alert('Por favor, digite um título para a tarefa.');
@@ -137,7 +154,7 @@ function addTask() {
     taskTitleEl.value = '';
     taskDescEl.value = '';
     taskDateEl.value = '';
-    taskCategoryEl.value = '';
+    selectCategory('');
     taskTitleEl.focus();
 }
 
@@ -234,18 +251,25 @@ function render() {
                 <div class="task-content">
                     <div class="task-header">
                         <span class="task-title">${escapeHtml(task.title)}</span>
-                        ${dateFormatted ? `<span class="task-date">📅 ${dateFormatted}</span>` : ''}
-                        ${task.category ? `<span class="task-category">🏷️ ${escapeHtml(task.category)}</span>` : ''}
+                        ${dateFormatted ? `<span class="task-date"><i data-lucide="calendar"></i> ${dateFormatted}</span>` : ''}
+                        ${task.category ? `<span class="task-category"><i data-lucide="tag"></i> ${escapeHtml(task.category)}</span>` : ''}
                     </div>
                     ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ''}
                 </div>
                 <div class="task-actions">
-                    <button class="btn-edit" onclick="openEditModal('${task.id}')">Editar</button>
-                    <button class="btn-delete" onclick="deleteTask('${task.id}')">✕</button>
+                    <button class="btn-edit" onclick="openEditModal('${task.id}')">
+                        <i data-lucide="pencil"></i> Editar
+                    </button>
+                    <button class="btn-delete" onclick="deleteTask('${task.id}')">
+                        <i data-lucide="trash-2"></i>
+                    </button>
                 </div>
             </li>
         `;
     }).join('');
+
+    // Recria os ícones na lista renderizada
+    lucide.createIcons();
 }
 
 // Função para prevenir XSS
@@ -258,8 +282,6 @@ function escapeHtml(text) {
 // --- Event Listeners ---
 function setupEventListeners() {
     addTaskBtn.addEventListener('click', addTask);
-    addCategoryBtn.addEventListener('click', addCategory);
-    delCategoryBtn.addEventListener('click', deleteCategory);
     clearCompletedBtn.addEventListener('click', clearCompleted);
 
     taskTitleEl.addEventListener('keypress', (e) => {
@@ -280,10 +302,22 @@ function setupEventListeners() {
         });
     });
 
+    // Eventos do Custom Select
+    categoryTrigger.addEventListener('click', toggleCategoryDropdown);
+    categoryOptions.addEventListener('click', handleCategoryOptionClick);
+    
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!categoryDropdown.contains(e.target)) {
+            categoryDropdown.classList.remove('open');
+            categoryOptions.classList.add('hidden');
+        }
+    });
+
+    // Eventos do Modal
     cancelEditBtn.addEventListener('click', closeEditModal);
     saveEditBtn.addEventListener('click', saveEdit);
     
-    // Fechar modal ao clicar fora
     editModal.addEventListener('click', (e) => {
         if (e.target === editModal) closeEditModal();
     });
