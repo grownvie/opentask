@@ -3,45 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenTask: gerenciador de tarefas simples que salva tudo no seu navegador.">
     <title>OpenTask</title>
-    <link rel="icon" href="https://raw.githubusercontent.com/grownvie/opentask/refs/heads/main/favicon.png" type="image/png">
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <!-- Fontes: uma única requisição para Inter, Onest e Instrument Serif -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=Onest:wght@100..900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
+
+    <!-- Versão fixa do Lucide. Se mudar a versão, confira se todos os ícones continuam aparecendo. -->
+    <script src="https://unpkg.com/lucide@0.383.0" defer></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <aside class="sidebar">
         <h1 class="logo">opentask</h1>
-        
+
         <div class="form-group">
             <div class="input-wrapper">
+                <label class="sr-only" for="taskTitle">Título da tarefa</label>
                 <i data-lucide="type" class="input-icon"></i>
                 <input type="text" id="taskTitle" placeholder="O que precisa ser feito?" autocomplete="off">
             </div>
-            
+
+            <label class="sr-only" for="taskDesc">Detalhes da tarefa</label>
             <textarea id="taskDesc" placeholder="Detalhes (opcional)" rows="3"></textarea>
-            
+
             <div class="row">
                 <div class="input-wrapper date-field">
+                    <label class="sr-only" for="taskDate">Data</label>
                     <i data-lucide="calendar" class="input-icon"></i>
                     <input type="date" id="taskDate" class="date-input">
                 </div>
-                
+
                 <div class="custom-select category-field">
+                    <span id="categoryLabel" class="sr-only">Categoria:</span>
                     <i data-lucide="tag" class="input-icon"></i>
-                    <button type="button" class="custom-select-trigger" id="categoryTrigger">
+                    <button type="button" class="custom-select-trigger" id="categoryTrigger"
+                            aria-haspopup="listbox" aria-expanded="false" aria-controls="categoryOptions"
+                            aria-labelledby="categoryLabel categoryDisplay">
                         <span id="categoryDisplay">Sem categoria</span>
                         <i data-lucide="chevron-down" class="chevron"></i>
                     </button>
                     <select id="taskCategory" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-                    <div class="custom-select-options hidden" id="categoryOptions"></div>
-                    <button type="button" id="addCategoryBtn" class="icon-btn-hidden" aria-hidden="true" tabindex="-1"></button>
+                    <div class="custom-select-options hidden" id="categoryOptions" role="listbox" aria-label="Categorias"></div>
                 </div>
             </div>
-            
-            <button id="addTaskBtn" class="btn-add">
+
+            <button type="button" id="addTaskBtn" class="btn-add">
                 <i data-lucide="plus"></i> Adicionar
             </button>
         </div>
@@ -50,16 +62,17 @@
     <main class="main-content">
         <header class="top-bar">
             <div class="search-wrapper">
+                <label class="sr-only" for="searchInput">Buscar tarefas</label>
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" id="searchInput" placeholder="Buscar tarefas" autocomplete="off">
             </div>
             <div class="controls-row">
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">Todas</button>
-                    <button class="filter-btn" data-filter="pending">Pendentes</button>
-                    <button class="filter-btn" data-filter="completed">Concluídas</button>
+                <div class="filters" role="group" aria-label="Filtrar tarefas">
+                    <button type="button" class="filter-btn active" data-filter="all" aria-pressed="true">Todas</button>
+                    <button type="button" class="filter-btn" data-filter="pending" aria-pressed="false">Pendentes</button>
+                    <button type="button" class="filter-btn" data-filter="completed" aria-pressed="false">Concluídas</button>
                 </div>
-                <button id="clearCompletedBtn" class="btn-clear">
+                <button type="button" id="clearCompletedBtn" class="btn-clear">
                     <i data-lucide="trash-2"></i> Limpar Concluídas
                 </button>
             </div>
@@ -69,252 +82,39 @@
     </main>
 
     <div id="editModal" class="modal hidden">
-        <div class="modal-content">
-            <h2>Editar Tarefa</h2>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+            <h2 id="editModalTitle">Editar Tarefa</h2>
             <div class="input-wrapper">
+                <label class="sr-only" for="editTitle">Título</label>
                 <i data-lucide="type" class="input-icon"></i>
-                <input type="text" id="editTitle" placeholder="Título">
+                <input type="text" id="editTitle" placeholder="Título" autocomplete="off">
             </div>
+            <label class="sr-only" for="editDesc">Detalhes</label>
             <textarea id="editDesc" placeholder="Detalhes" rows="3"></textarea>
             <div class="row">
                 <div class="input-wrapper flex-1">
+                    <label class="sr-only" for="editDate">Data</label>
                     <i data-lucide="calendar" class="input-icon"></i>
                     <input type="date" id="editDate">
                 </div>
                 <div class="custom-select compact edit-category-field flex-2">
+                    <span id="editCategoryLabel" class="sr-only">Categoria:</span>
                     <i data-lucide="tag" class="input-icon"></i>
-                    <button type="button" class="custom-select-trigger" id="editCategoryTrigger">
+                    <button type="button" class="custom-select-trigger" id="editCategoryTrigger"
+                            aria-haspopup="listbox" aria-expanded="false" aria-controls="editCategoryOptions"
+                            aria-labelledby="editCategoryLabel editCategoryDisplay">
                         <span id="editCategoryDisplay">Sem categoria</span>
                         <i data-lucide="chevron-down" class="chevron"></i>
                     </button>
                     <select id="editCategory" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-                    <div class="custom-select-options hidden" id="editCategoryOptions"></div>
+                    <div class="custom-select-options hidden" id="editCategoryOptions" role="listbox" aria-label="Categorias"></div>
                 </div>
             </div>
             <div class="modal-actions">
-                <button id="cancelEditBtn" class="btn-cancel">Cancelar</button>
-                <button id="saveEditBtn" class="btn-save">Salvar</button>
+                <button type="button" id="cancelEditBtn" class="btn-cancel">Cancelar</button>
+                <button type="button" id="saveEditBtn" class="btn-save">Salvar</button>
             </div>
         </div>
     </div>
-
-    <script src="script.js"></script>
-
-    <!-- Script complementar: dropdowns customizados + apagar categorias -->
-    <script>
-        (function () {
-            const ADD_NEW_VALUE = '__new_category__';
-
-            /* ---------- Helpers ---------- */
-
-            function deleteCategory(name) {
-                if (!name) return;
-                if (!confirm(`Apagar a categoria "${name}"?\n\nAs tarefas desta categoria ficarão como "Sem categoria".`)) return;
-                if (typeof window.deleteCategoryByName === 'function') {
-                    window.deleteCategoryByName(name);
-                }
-            }
-
-            function buildOptionElement(opt, showDelete) {
-                const div = document.createElement('div');
-                div.className = 'custom-option';
-                if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
-                div.dataset.value = opt.value;
-
-                const label = document.createElement('span');
-                label.className = 'custom-option-label';
-                label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
-                div.appendChild(label);
-
-                if (showDelete && opt.value && opt.value !== ADD_NEW_VALUE) {
-                    const del = document.createElement('button');
-                    del.type = 'button';
-                    del.className = 'custom-option-delete';
-                    del.title = 'Apagar categoria';
-                    del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
-                    del.innerHTML = '✕';
-                    del.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteCategory(opt.value);
-                    });
-                    div.appendChild(del);
-                }
-
-                return div;
-            }
-
-            /* ---------- Fábrica de controller ---------- */
-
-            function createController(cfg) {
-                const { nativeSelect, trigger, display, optionsPanel, container, addBtn, showDelete } = cfg;
-                let isUpdating = false;
-
-                function renderOptions() {
-                    optionsPanel.innerHTML = '';
-                    Array.from(nativeSelect.options).forEach(opt => {
-                        optionsPanel.appendChild(buildOptionElement(opt, showDelete));
-                    });
-                }
-
-                function ensureAddOption() {
-                    if (isUpdating) return;
-                    isUpdating = true;
-                    try {
-                        nativeSelect.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
-                        const option = document.createElement('option');
-                        option.value = ADD_NEW_VALUE;
-                        option.textContent = '+ Nova Categoria';
-                        nativeSelect.appendChild(option);
-                        renderOptions();
-                    } finally {
-                        isUpdating = false;
-                    }
-                }
-
-                function updateDisplay() {
-                    const current = nativeSelect.value;
-                    if (current === ADD_NEW_VALUE || !current) {
-                        display.textContent = 'Sem categoria';
-                    } else {
-                        display.textContent = current;
-                    }
-                }
-
-                function openPanel() {
-                    optionsPanel.classList.remove('hidden');
-                    container.classList.add('open');
-                }
-                function closePanel() {
-                    optionsPanel.classList.add('hidden');
-                    container.classList.remove('open');
-                }
-                function togglePanel() {
-                    optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
-                }
-
-                trigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    togglePanel();
-                });
-
-                optionsPanel.addEventListener('click', (e) => {
-                    if (e.target.closest('.custom-option-delete')) return;
-
-                    const opt = e.target.closest('.custom-option');
-                    if (!opt) return;
-
-                    const value = opt.dataset.value;
-
-                    if (value === ADD_NEW_VALUE) {
-                        if (addBtn) {
-                            addBtn.click();
-                            setTimeout(() => {
-                                ensureAddOption();
-                                updateDisplay();
-                            }, 0);
-                        }
-                    } else {
-                        nativeSelect.value = value;
-                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                        updateDisplay();
-                    }
-                    closePanel();
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!container.contains(e.target)) closePanel();
-                });
-
-                nativeSelect.addEventListener('change', updateDisplay);
-
-                return { ensureAddOption, updateDisplay };
-            }
-
-            /* ---------- Inicialização ---------- */
-
-            function init() {
-                const mainNativeSelect = document.getElementById('taskCategory');
-                const mainTrigger = document.getElementById('categoryTrigger');
-                const mainDisplay = document.getElementById('categoryDisplay');
-                const mainOptionsPanel = document.getElementById('categoryOptions');
-                const mainAddBtn = document.getElementById('addCategoryBtn');
-                const mainContainer = document.querySelector('.custom-select.category-field');
-
-                if (!mainNativeSelect || !mainTrigger || !mainDisplay || !mainOptionsPanel || !mainContainer) return;
-
-                const mainCtrl = createController({
-                    nativeSelect: mainNativeSelect,
-                    trigger: mainTrigger,
-                    display: mainDisplay,
-                    optionsPanel: mainOptionsPanel,
-                    container: mainContainer,
-                    addBtn: mainAddBtn,
-                    showDelete: true
-                });
-
-                const editNativeSelect = document.getElementById('editCategory');
-                const editTrigger = document.getElementById('editCategoryTrigger');
-                const editDisplay = document.getElementById('editCategoryDisplay');
-                const editOptionsPanel = document.getElementById('editCategoryOptions');
-                const editContainer = document.querySelector('.custom-select.edit-category-field');
-
-                let editCtrl = null;
-                if (editNativeSelect && editTrigger && editDisplay && editOptionsPanel && editContainer) {
-                    editCtrl = createController({
-                        nativeSelect: editNativeSelect,
-                        trigger: editTrigger,
-                        display: editDisplay,
-                        optionsPanel: editOptionsPanel,
-                        container: editContainer,
-                        addBtn: mainAddBtn,
-                        showDelete: true
-                    });
-                }
-
-                /* Wrapper: reinjeta a opção especial quando script.js reconstruir os <select> */
-                function installRenderWrapper() {
-                    const original = window.renderCategories;
-                    if (typeof original !== 'function') return;
-
-                    window.renderCategories = function () {
-                        original.apply(this, arguments);
-                        mainCtrl.ensureAddOption();
-                        mainCtrl.updateDisplay();
-                        if (editCtrl) {
-                            editCtrl.ensureAddOption();
-                            editCtrl.updateDisplay();
-                        }
-                    };
-                }
-
-                installRenderWrapper();
-
-                /* Estado inicial */
-                mainCtrl.ensureAddOption();
-                mainCtrl.updateDisplay();
-                if (editCtrl) {
-                    editCtrl.ensureAddOption();
-                    editCtrl.updateDisplay();
-                }
-
-                /* Wrapper: sincroniza o display do modal ao abrir */
-                if (editCtrl && typeof window.openEditModal === 'function') {
-                    const originalOpen = window.openEditModal;
-                    window.openEditModal = function (id) {
-                        originalOpen(id);
-                        editCtrl.updateDisplay();
-                    };
-                }
-
-                if (window.lucide) window.lucide.createIcons();
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-        })();
-    </script>
 </body>
 </html>
