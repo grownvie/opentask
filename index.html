@@ -25,15 +25,15 @@
             <div class="row">
                 <div class="input-wrapper flex-1">
                     <i data-lucide="calendar" class="input-icon"></i>
-                    <input type="date" id="taskDate" class="date-input" title="Data de conclusão">
+                    <input type="date" id="taskDate" class="date-input">
                 </div>
                 
                 <div class="category-group flex-2">
-                    <div class="input-wrapper">
+                    <div class="input-wrapper category-input">
                         <i data-lucide="tag" class="input-icon"></i>
                         <select id="taskCategory"></select>
                     </div>
-                    <button id="addCategoryBtn" class="icon-btn" title="Nova Categoria">
+                    <button type="button" id="addCategoryBtn" class="icon-btn" title="Nova Categoria">
                         <i data-lucide="plus"></i>
                     </button>
                 </div>
@@ -47,21 +47,21 @@
 
     <main class="main-content">
         <header class="top-bar">
-    <div class="search-wrapper">
-        <i data-lucide="search" class="search-icon"></i>
-        <input type="text" id="searchInput" placeholder="Buscar tarefas" autocomplete="off">
-    </div>
-    <div class="controls-row">
-        <div class="filters">
-            <button class="filter-btn active" data-filter="all">Todas</button>
-            <button class="filter-btn" data-filter="pending">Pendentes</button>
-            <button class="filter-btn" data-filter="completed">Concluídas</button>
-        </div>
-        <button id="clearCompletedBtn" class="btn-clear">
-            <i data-lucide="trash-2"></i> Limpar Concluídas
-        </button>
-    </div>
-</header>
+            <div class="search-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar tarefas" autocomplete="off">
+            </div>
+            <div class="controls-row">
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">Todas</button>
+                    <button class="filter-btn" data-filter="pending">Pendentes</button>
+                    <button class="filter-btn" data-filter="completed">Concluídas</button>
+                </div>
+                <button id="clearCompletedBtn" class="btn-clear">
+                    <i data-lucide="trash-2"></i> Limpar Concluídas
+                </button>
+            </div>
+        </header>
 
         <ul id="taskList" class="task-list"></ul>
     </main>
