@@ -95,101 +95,127 @@
         <script src="script.js"></script>
 
     <!-- Script complementar: dropdown customizado de categorias + apagar categorias -->
+        <script src="script.js"></script>
+
+    <!-- Script complementar: dropdown customizado de categorias + apagar categorias -->
     <script>
         (function () {
             const ADD_NEW_VALUE = '__new_category__';
+            let nativeSelect, trigger, display, optionsPanel, addBtn, customSelect;
+            let isUpdating = false; // trava para evitar recursão
 
-            function init() {
-                const nativeSelect = document.getElementById('taskCategory');
-                const trigger = document.getElementById('categoryTrigger');
-                const display = document.getElementById('categoryDisplay');
-                const optionsPanel = document.getElementById('categoryOptions');
-                const addBtn = document.getElementById('addCategoryBtn');
-                const customSelect = document.querySelector('.custom-select');
+            function deleteCategory(name) {
+                if (!name) return;
+                if (!confirm(`Apagar a categoria "${name}"?\n\nAs tarefas desta categoria ficarão como "Sem categoria".`)) return;
 
-                if (!nativeSelect || !trigger || !display || !optionsPanel || !customSelect) return;
+                if (typeof window.deleteCategoryByName === 'function') {
+                    window.deleteCategoryByName(name);
+                }
+            }
 
-                // Apaga uma categoria (com confirmação)
-                function deleteCategory(name) {
-                    if (!name) return;
-                    if (!confirm(`Apagar a categoria "${name}"?\n\nAs tarefas desta categoria ficarão como "Sem categoria".`)) return;
+            function renderOptions() {
+                optionsPanel.innerHTML = '';
+                Array.from(nativeSelect.options).forEach(opt => {
+                    const div = document.createElement('div');
+                    div.className = 'custom-option';
+                    if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
+                    div.dataset.value = opt.value;
 
-                    if (typeof window.deleteCategoryByName === 'function') {
-                        window.deleteCategoryByName(name);
+                    const label = document.createElement('span');
+                    label.className = 'custom-option-label';
+                    label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
+                    div.appendChild(label);
+
+                    // Botão de apagar só para categorias reais
+                    if (opt.value && opt.value !== ADD_NEW_VALUE) {
+                        const del = document.createElement('button');
+                        del.type = 'button';
+                        del.className = 'custom-option-delete';
+                        del.title = 'Apagar categoria';
+                        del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
+                        del.innerHTML = '✕';
+                        del.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            deleteCategory(opt.value);
+                        });
+                        div.appendChild(del);
                     }
-                    // Após deletar, script.js já reconstruiu o <select> nativo;
-                    // o MutationObserver vai re-renderizar o dropdown customizado automaticamente.
-                }
 
-                function renderOptions() {
-                    optionsPanel.innerHTML = '';
-                    Array.from(nativeSelect.options).forEach(opt => {
-                        const div = document.createElement('div');
-                        div.className = 'custom-option';
-                        if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
-                        div.dataset.value = opt.value;
+                    optionsPanel.appendChild(div);
+                });
+            }
 
-                        const label = document.createElement('span');
-                        label.className = 'custom-option-label';
-                        label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
-                        div.appendChild(label);
+            function ensureAddOption() {
+                // Evita recursão: marca como "em atualização"
+                if (isUpdating) return;
+                isUpdating = true;
 
-                        // Botão de apagar somente para categorias reais (exclui "Sem categoria" e "+ Nova Categoria")
-                        if (opt.value && opt.value !== ADD_NEW_VALUE) {
-                            const del = document.createElement('button');
-                            del.type = 'button';
-                            del.className = 'custom-option-delete';
-                            del.title = 'Apagar categoria';
-                            del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
-                            del.innerHTML = '✕';
-                            del.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                deleteCategory(opt.value);
-                            });
-                            div.appendChild(del);
-                        }
-
-                        optionsPanel.appendChild(div);
-                    });
-                }
-
-                function ensureAddOption() {
+                try {
+                    // Remove qualquer "+ Nova Categoria" existente
                     nativeSelect.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
+
+                    // Adiciona ao final
                     const option = document.createElement('option');
                     option.value = ADD_NEW_VALUE;
                     option.textContent = '+ Nova Categoria';
                     nativeSelect.appendChild(option);
+
+                    // Reconstrói o dropdown customizado
                     renderOptions();
+                } finally {
+                    isUpdating = false;
                 }
+            }
 
-                function updateDisplay() {
-                    const current = nativeSelect.value;
-                    if (current === ADD_NEW_VALUE || !current) {
-                        display.textContent = 'Sem categoria';
-                    } else {
-                        display.textContent = current;
-                    }
+            function updateDisplay() {
+                const current = nativeSelect.value;
+                if (current === ADD_NEW_VALUE || !current) {
+                    display.textContent = 'Sem categoria';
+                } else {
+                    display.textContent = current;
                 }
+            }
 
-                function openPanel() {
-                    optionsPanel.classList.remove('hidden');
-                    customSelect.classList.add('open');
-                }
-                function closePanel() {
-                    optionsPanel.classList.add('hidden');
-                    customSelect.classList.remove('open');
-                }
-                function togglePanel() {
-                    optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
-                }
+            function openPanel() {
+                optionsPanel.classList.remove('hidden');
+                customSelect.classList.add('open');
+            }
+            function closePanel() {
+                optionsPanel.classList.add('hidden');
+                customSelect.classList.remove('open');
+            }
+            function togglePanel() {
+                optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
+            }
 
-                ensureAddOption();
-                updateDisplay();
+            // Wrapper: quando script.js reconstruir o <select>, reinjetamos a opção especial
+            function installRenderWrapper() {
+                const original = window.renderCategories;
+                if (typeof original !== 'function') return;
 
-                new MutationObserver(() => {
+                window.renderCategories = function () {
+                    original.apply(this, arguments);
                     ensureAddOption();
                     updateDisplay();
-                }).observe(nativeSelect, { childList: true });
+                };
+            }
+
+            function init() {
+                nativeSelect = document.getElementById('taskCategory');
+                trigger = document.getElementById('categoryTrigger');
+                display = document.getElementById('categoryDisplay');
+                optionsPanel = document.getElementById('categoryOptions');
+                addBtn = document.getElementById('addCategoryBtn');
+                customSelect = document.querySelector('.custom-select');
+
+                if (!nativeSelect || !trigger || !display || !optionsPanel || !customSelect) return;
+
+                // Instala o wrapper ANTES de qualquer renderCategories rodar
+                installRenderWrapper();
+
+                // Estado inicial: já temos o <select> populado, basta adicionar a opção
+                ensureAddOption();
+                updateDisplay();
 
                 trigger.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -197,7 +223,6 @@
                 });
 
                 optionsPanel.addEventListener('click', (e) => {
-                    // Ignora cliques no botão de apagar (já tratado no listener próprio)
                     if (e.target.closest('.custom-option-delete')) return;
 
                     const opt = e.target.closest('.custom-option');
@@ -207,11 +232,11 @@
 
                     if (value === ADD_NEW_VALUE) {
                         if (addBtn) {
+                            // addBtn.click() → script.js addCategory → prompt → renderCategories (wrapper injeta opção)
                             addBtn.click();
-                            setTimeout(() => {
-                                ensureAddOption();
-                                updateDisplay();
-                            }, 0);
+                            // Sincroniza display após o prompt fechar (síncrono, mas garantimos)
+                            ensureAddOption();
+                            updateDisplay();
                         }
                     } else {
                         nativeSelect.value = value;
