@@ -6,7 +6,7 @@
     <title>opentask</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -23,20 +23,21 @@
             <textarea id="taskDesc" placeholder="Detalhes (opcional)" rows="3"></textarea>
             
             <div class="row">
-                <div class="input-wrapper flex-1">
+                <div class="input-wrapper date-field">
                     <i data-lucide="calendar" class="input-icon"></i>
                     <input type="date" id="taskDate" class="date-input">
                 </div>
                 
-                <div class="input-wrapper category-input flex-2">
+                <div class="custom-select category-field">
                     <i data-lucide="tag" class="input-icon"></i>
-                    <select id="taskCategory"></select>
+                    <button type="button" class="custom-select-trigger" id="categoryTrigger">
+                        <span id="categoryDisplay">Sem categoria</span>
+                        <i data-lucide="chevron-down" class="chevron"></i>
+                    </button>
+                    <select id="taskCategory" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+                    <div class="custom-select-options hidden" id="categoryOptions"></div>
+                    <button type="button" id="addCategoryBtn" class="icon-btn-hidden" aria-hidden="true" tabindex="-1"></button>
                 </div>
-                
-                <!-- Botão mantido no DOM (o JS precisa dele), mas invisível -->
-                <button type="button" id="addCategoryBtn" class="icon-btn-hidden" aria-hidden="true" tabindex="-1">
-                    <i data-lucide="plus"></i>
-                </button>
             </div>
             
             <button id="addTaskBtn" class="btn-add">
@@ -90,56 +91,112 @@
 
     <script src="script.js"></script>
 
-    <!-- ===== Script complementar: adiciona "+ Nova Categoria" dentro do select ===== -->
-    <!-- NÃO modifica o script.js — apenas usa o botão #addCategoryBtn que já existe -->
+    <!-- Script complementar: dropdown customizado de categorias -->
     <script>
         (function () {
             const ADD_NEW_VALUE = '__new_category__';
 
-            function ensureAddOption() {
-                const select = document.getElementById('taskCategory');
-                if (!select) return;
-
-                // Remove a opção especial antiga (se existir) para evitar duplicatas
-                select.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
-
-                const option = document.createElement('option');
-                option.value = ADD_NEW_VALUE;
-                option.textContent = '+  Nova Categoria';
-                option.style.color = '#4c6ef5';
-                option.style.fontWeight = '600';
-                select.appendChild(option);
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                const select = document.getElementById('taskCategory');
+            function init() {
+                const nativeSelect = document.getElementById('taskCategory');
+                const trigger = document.getElementById('categoryTrigger');
+                const display = document.getElementById('categoryDisplay');
+                const optionsPanel = document.getElementById('categoryOptions');
                 const addBtn = document.getElementById('addCategoryBtn');
-                if (!select || !addBtn) return;
+                const customSelect = document.querySelector('.custom-select');
+
+                if (!nativeSelect || !trigger || !display || !optionsPanel || !customSelect) return;
+
+                function renderOptions() {
+                    optionsPanel.innerHTML = '';
+                    Array.from(nativeSelect.options).forEach(opt => {
+                        const div = document.createElement('div');
+                        div.className = 'custom-option';
+                        if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
+                        div.dataset.value = opt.value;
+                        div.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
+                        optionsPanel.appendChild(div);
+                    });
+                }
+
+                function ensureAddOption() {
+                    nativeSelect.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
+                    const option = document.createElement('option');
+                    option.value = ADD_NEW_VALUE;
+                    option.textContent = '+ Nova Categoria';
+                    nativeSelect.appendChild(option);
+                    renderOptions();
+                }
+
+                function updateDisplay() {
+                    const current = nativeSelect.value;
+                    if (current === ADD_NEW_VALUE || !current) {
+                        display.textContent = 'Sem categoria';
+                    } else {
+                        display.textContent = current;
+                    }
+                }
+
+                function openPanel() {
+                    optionsPanel.classList.remove('hidden');
+                    customSelect.classList.add('open');
+                }
+                function closePanel() {
+                    optionsPanel.classList.add('hidden');
+                    customSelect.classList.remove('open');
+                }
+                function togglePanel() {
+                    optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
+                }
 
                 ensureAddOption();
+                updateDisplay();
 
-                // Sempre que o script.js recriar as opções, re-adicionamos a nossa
-                new MutationObserver(ensureAddOption).observe(select, { childList: true });
+                new MutationObserver(() => {
+                    ensureAddOption();
+                    updateDisplay();
+                }).observe(nativeSelect, { childList: true });
 
-                // Ao selecionar "+ Nova Categoria", dispara o botão oculto (que abre o prompt)
-                select.addEventListener('change', (e) => {
-                    if (e.target.value === ADD_NEW_VALUE) {
-                        const previous = select.dataset.prevValue || '';
-                        addBtn.click(); // Abre o prompt() do script.js
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    togglePanel();
+                });
 
-                        // prompt() é bloqueante — o código abaixo só roda depois que o usuário responder
-                        if (select.value === ADD_NEW_VALUE) {
-                            // Usuário cancelou → restaura seleção anterior
-                            select.value = previous;
-                        } else {
-                            // Categoria criada com sucesso → guarda como valor anterior
-                            select.dataset.prevValue = select.value;
+                optionsPanel.addEventListener('click', (e) => {
+                    const opt = e.target.closest('.custom-option');
+                    if (!opt) return;
+
+                    const value = opt.dataset.value;
+
+                    if (value === ADD_NEW_VALUE) {
+                        if (addBtn) {
+                            addBtn.click();
+                            setTimeout(() => {
+                                ensureAddOption();
+                                updateDisplay();
+                            }, 0);
                         }
                     } else {
-                        select.dataset.prevValue = e.target.value;
+                        nativeSelect.value = value;
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        updateDisplay();
                     }
+                    closePanel();
                 });
-            });
+
+                document.addEventListener('click', (e) => {
+                    if (!customSelect.contains(e.target)) closePanel();
+                });
+
+                nativeSelect.addEventListener('change', updateDisplay);
+
+                if (window.lucide) window.lucide.createIcons();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
         })();
     </script>
 </body>

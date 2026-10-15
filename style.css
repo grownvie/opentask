@@ -1,17 +1,22 @@
-/* ===== Adwaita Sans via @font-face ===== */
+/* ===== Fallback confiável: Inter do Google Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* ===== Adwaita Sans — múltiplas fontes para garantir o carregamento ===== */
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: normal;
     font-weight: 100 900;
     font-display: swap;
-    src: url('https://fontsapi.zeoseven.com/2209/regular.woff2') format('woff2');
+    src: url('https://fontsapi.zeoseven.com/2209/regular.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/gh/GNOME/adwaita-fonts@main/fonts/AdwaitaSans-VariableFont_wght.ttf') format('truetype-variations');
 }
 @font-face {
     font-family: 'Adwaita Sans';
     font-style: italic;
     font-weight: 100 900;
     font-display: swap;
-    src: url('https://fontsapi.zeoseven.com/2209/italic.woff2') format('woff2');
+    src: url('https://fontsapi.zeoseven.com/2209/italic.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/gh/GNOME/adwaita-fonts@main/fonts/AdwaitaSans-Italic-VariableFont_wght.ttf') format('truetype-variations');
 }
 
 /* ===== Variáveis ===== */
@@ -26,7 +31,9 @@
     --accent-hover: #3b5bdb;
     --border: #333333;
     --radius: 8px;
-    --font-ui: 'Adwaita Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    --field-height: 56px;
+    --pill-height: 44px;
+    --font-ui: 'Adwaita Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color-scheme: dark;
 }
 
@@ -35,6 +42,22 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* ===== APLICAÇÃO UNIVERSAL DA FONTE ===== */
+*,
+*::before,
+*::after {
+    font-family: var(--font-ui) !important;
+}
+
+svg, svg * {
+    font-family: inherit;
+}
+
+.logo,
+.logo * {
+    font-family: 'Instrument Serif', Georgia, serif !important;
 }
 
 /* ===== Base ===== */
@@ -50,9 +73,8 @@ body {
     overflow: hidden;
 }
 
-/* Força Adwaita Sans em todos os elementos nativos */
 button, input, textarea, select, option {
-    font-family: var(--font-ui);
+    font-family: var(--font-ui) !important;
     font-size: 1rem;
 }
 
@@ -71,14 +93,13 @@ button, input, textarea, select, option {
 }
 
 .logo {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
     font-size: 4rem;
     font-weight: 400;
     letter-spacing: -1px;
     color: var(--text-main);
     line-height: 1;
     margin-bottom: 1rem;
+    font-style: italic;
 }
 
 .form-group {
@@ -99,6 +120,8 @@ button, input, textarea, select, option {
 .input-icon {
     position: absolute;
     left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-muted);
     width: 18px;
     height: 18px;
@@ -118,7 +141,6 @@ input, textarea, select {
     border-radius: var(--radius);
     padding: 1rem;
     color: var(--text-main);
-    font-family: var(--font-ui);
     font-size: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -131,7 +153,6 @@ input:focus, textarea:focus, select:focus {
 
 input::placeholder, textarea::placeholder {
     color: var(--text-muted);
-    font-family: var(--font-ui);
 }
 
 textarea {
@@ -144,57 +165,169 @@ textarea {
     display: flex;
     gap: 1rem;
     width: 100%;
+    align-items: stretch;
 }
 
 .flex-1 { flex: 1 1 0; min-width: 0; }
 .flex-2 { flex: 2 1 0; min-width: 0; }
 
-/* ===== Input de data em modo escuro ===== */
+/* ===== Campos de data e categoria com MESMA altura ===== */
+.date-field,
+.category-field {
+    flex: 1.5 1 0;
+    min-width: 0;
+}
+
+.date-field .date-input {
+    height: var(--field-height);
+    padding: 0 1rem 0 2.8rem !important;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    line-height: var(--field-height);
+}
+
 input[type="date"] {
     color-scheme: dark;
-    font-family: var(--font-ui);
 }
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.7);
     cursor: pointer;
     opacity: 0.8;
+    width: 20px;
+    height: 20px;
 }
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
-/* ===== Select customizado (seta SVG) ===== */
-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
-    cursor: pointer;
-}
-select option {
-    background: var(--bg-card);
-    color: var(--text-main);
-    font-family: var(--font-ui);
+.category-field {
+    position: relative;
 }
 
-/* Opção "+ Nova Categoria" dentro do select ganha destaque */
-#taskCategory option[value="__new_category__"] {
+.category-field .input-icon {
+    z-index: 3;
+}
+
+.native-select-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: var(--field-height);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 2.5rem 0 2.8rem;
+    color: var(--text-main);
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.custom-select-trigger:hover {
+    border-color: #444;
+}
+
+.custom-select.open .custom-select-trigger,
+.custom-select-trigger:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.15);
+}
+
+.custom-select-trigger #categoryDisplay {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    text-align: left;
+    line-height: 1;
+}
+
+.custom-select-trigger .chevron {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    pointer-events: none;
+}
+
+.custom-select.open .custom-select-trigger .chevron {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Painel de opções customizado */
+.custom-select-options {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    padding: 0.35rem;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.custom-select-options.hidden {
+    display: none;
+}
+
+.custom-option {
+    padding: 0.65rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.custom-option:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.custom-option.add-new {
     color: var(--accent);
     font-weight: 600;
-    background: rgba(76, 110, 245, 0.08);
     border-top: 1px solid var(--border);
+    margin-top: 0.35rem;
+    padding-top: 0.75rem;
+    border-radius: 0 0 6px 6px;
 }
 
-/* Input de categoria ocupa a largura total da célula */
-.category-input {
-    flex: 2 1 0;
-    min-width: 0;
+.custom-option.add-new:hover {
+    background: rgba(76, 110, 245, 0.12);
 }
 
-/* Botão de categoria: invisível, mas presente no DOM para o JS */
 .icon-btn-hidden {
     display: none !important;
 }
@@ -206,7 +339,6 @@ select option {
     border: none;
     padding: 1rem;
     border-radius: var(--radius);
-    font-family: var(--font-ui);
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -241,7 +373,6 @@ select option {
     width: 100%;
 }
 
-/* Busca (largura total) */
 .search-wrapper {
     position: relative;
     width: 100%;
@@ -263,7 +394,6 @@ select option {
     width: 100%;
 }
 
-/* Linha inferior: filtros à esquerda, limpar à direita */
 .controls-row {
     display: flex;
     justify-content: space-between;
@@ -277,50 +407,47 @@ select option {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
-.filter-btn {
+/* ===== Botões-pílula com MESMA altura ===== */
+/* Compartilham altura fixa para ficarem perfeitamente alinhados */
+.filter-btn,
+.btn-clear {
+    height: var(--pill-height);
+    padding: 0 1.4rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    transition: all 0.2s;
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-muted);
-    padding: 0.6rem 1.2rem;
-    border-radius: 99px;
-    cursor: pointer;
-    font-family: var(--font-ui);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
+    line-height: 1;
 }
+
 .filter-btn:hover {
     border-color: var(--text-muted);
     color: var(--text-main);
 }
+
 .filter-btn.active {
     background: var(--accent);
     border-color: var(--accent);
     color: white;
 }
 
-.btn-clear {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 0.6rem 1.2rem;
-    border-radius: 99px;
-    cursor: pointer;
-    font-family: var(--font-ui);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 .btn-clear:hover {
     border-color: #e01b24;
     color: #e01b24;
 }
+
 .btn-clear i {
     width: 16px;
     height: 16px;
@@ -393,14 +520,12 @@ select option {
     flex-wrap: wrap;
 }
 .task-title {
-    font-family: var(--font-ui);
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-main);
     word-break: break-word;
 }
 .task-date, .task-category {
-    font-family: var(--font-ui);
     font-size: 0.75rem;
     padding: 0.2rem 0.6rem;
     border-radius: 99px;
@@ -416,7 +541,6 @@ select option {
     height: 12px;
 }
 .task-desc {
-    font-family: var(--font-ui);
     font-size: 0.9rem;
     color: var(--text-muted);
     line-height: 1.4;
@@ -430,7 +554,6 @@ select option {
 }
 
 .btn-edit, .btn-delete {
-    font-family: var(--font-ui);
     background: white;
     color: black;
     border: none;
@@ -493,7 +616,6 @@ select option {
     gap: 1rem;
 }
 .modal-content h2 {
-    font-family: var(--font-ui);
     font-size: 1.5rem;
     font-weight: 600;
 }
@@ -504,7 +626,6 @@ select option {
     margin-top: 1rem;
 }
 .btn-cancel {
-    font-family: var(--font-ui);
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-main);
@@ -516,7 +637,6 @@ select option {
 }
 .btn-cancel:hover { border-color: var(--text-muted); }
 .btn-save {
-    font-family: var(--font-ui);
     background: var(--accent);
     border: none;
     color: white;
