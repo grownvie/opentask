@@ -1,107 +1,172 @@
+const STORAGE_KEY = 'adwaita-tasks';
+
+let tasks = [];
 let currentFilter = 'all';
+let currentSearch = '';
+let draggedId = null;
 
+const taskListEl = document.getElementById('taskList');
+const taskInputEl = document.getElementById('taskInput');
+const taskDescEl = document.getElementById('taskDesc');
+const addBtn = document.getElementById('addBtn');
+const searchInput = document.getElementById('searchInput');
+const counterEl = document.getElementById('counter');
+const clearCompletedBtn = document.getElementById('clearCompleted');
+const filterBtns = document.querySelectorAll('.filter-btn');
+
+// Carregar tarefas do localStorage
+function loadTasks() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    tasks = stored ? JSON.parse(stored) : [];
+}
+
+// Salvar tarefas
+function saveTasks() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// Escapar HTML para segurança
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Renderizar lista com filtros e busca
+function render() {
+    const filtered = tasks.filter(task => {
+        const matchesFilter = currentFilter === 'all' || 
+            (currentFilter === 'pending' && !task.completed) ||
+            (currentFilter === 'completed' && task.completed);
+        const matchesSearch = task.title.toLowerCase().includes(currentSearch.toLowerCase()) ||
+            (task.description && task.description.toLowerCase().includes(currentSearch.toLowerCase()));
+        return matchesFilter && matchesSearch;
+    });
+
+    taskListEl.innerHTML = '';
+    filtered.forEach(task => {
+        const li = document.createElement('li');
+        li.className = `task-item ${task.completed ? 'completed' : ''}`;
+        li.draggable = true;
+        li.dataset.id = task.id;
+        li.innerHTML = `
+            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} aria-label="Concluir tarefa">
+            <div class="task-content">
+                <div class="task-title">${escapeHtml(task.title)}</div>
+                ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ''}
+            </div>
+            <button class="delete-btn" aria-label="Excluir tarefa">✕</button>
+        `;
+
+        li.querySelector('.task-checkbox').addEventListener('change', () => toggleTask(task.id));
+        li.querySelector('.delete-btn').addEventListener('click', () => deleteTask(task.id));
+
+        li.addEventListener('dragstart', handleDragStart);
+        li.addEventListener('dragover', handleDragOver);
+        li.addEventListener('drop', handleDrop);
+        li.addEventListener('dragend', handleDragEnd);
+
+        taskListEl.appendChild(li);
+    });
+
+    counterEl.textContent = `${filtered.length} ${filtered.length === 1 ? 'tarefa' : 'tarefas'}`;
+}
+
+// Adicionar nova tarefa
 function addTask() {
-    const title = document.getElementById('taskInput').value.trim();
-    const description = document.getElementById('taskDesc').value.trim();
-
-    if (!title) {
-        alert('Por favor, digite um título para a tarefa!');
-        return;
-    }
+    const title = taskInputEl.value.trim();
+    const description = taskDescEl.value.trim();
+    if (!title) return;
 
     const task = {
+        id: Date.now().toString(),
         title,
         description,
-        completed: false,
-        id: Date.now()
+        completed: false
     };
 
-    addTaskToDOM(task);
+    tasks.unshift(task);
     saveTasks();
-    clearInputs();
+    render();
+    taskInputEl.value = '';
+    taskDescEl.value = '';
+    taskInputEl.focus();
 }
 
-function addTaskToDOM(task) {
-    const li = document.createElement('li');
-    li.className = `task-item ${task.completed ? 'completed' : ''}`;
-    li.dataset.id = task.id;
-    li.innerHTML = `
-        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-        <div class="task-content">
-            <div class="task-title">
-                ${task.title}
-            </div>
-            ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
-        </div>
-        <button class="delete-btn" onclick="deleteTask(${task.id})">Excluir</button>
-    `;
-
-    document.getElementById('taskList').appendChild(li);
-    applyFilter();
-}
-
+// Alternar conclusão
 function toggleTask(id) {
-    const tasks = getTasks();
     const task = tasks.find(t => t.id === id);
     if (task) {
         task.completed = !task.completed;
-        saveTasks(tasks);
-        refreshTaskList();
+        saveTasks();
+        render();
     }
 }
 
+// Excluir tarefa
 function deleteTask(id) {
-    const tasks = getTasks().filter(t => t.id !== id);
-    saveTasks(tasks);
-    refreshTaskList();
+    tasks = tasks.filter(t => t.id !== id);
+    saveTasks();
+    render();
 }
 
-function filterTasks(filter) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(btn => 
-        btn.classList.remove('active'));
-    event.target.classList.add('active');
-    applyFilter();
+// Limpar concluídas
+function clearCompleted() {
+    tasks = tasks.filter(t => !t.completed);
+    saveTasks();
+    render();
 }
 
-function applyFilter() {
-    document.querySelectorAll('.task-item').forEach(item => {
-        const completed = item.querySelector('input').checked;
-        item.style.display = 
-            currentFilter === 'all' ? 'flex' :
-            currentFilter === 'completed' && completed ? 'flex' :
-            currentFilter === 'pending' && !completed ? 'flex' : 'none';
+// Drag and Drop para reordenar
+function handleDragStart(e) {
+    draggedId = e.target.dataset.id;
+    e.target.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetId = e.target.closest('.task-item')?.dataset.id;
+    if (!targetId || targetId === draggedId) return;
+
+    const draggedIndex = tasks.findIndex(t => t.id === draggedId);
+    const targetIndex = tasks.findIndex(t => t.id === targetId);
+    const [draggedTask] = tasks.splice(draggedIndex, 1);
+    tasks.splice(targetIndex, 0, draggedTask);
+    saveTasks();
+    render();
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    draggedId = null;
+}
+
+// Event Listeners
+addBtn.addEventListener('click', addTask);
+taskInputEl.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addTask();
+});
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        render();
     });
-}
+});
 
-function getTasks() {
-    return JSON.parse(localStorage.getItem('tasks')) || [];
-}
+searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    render();
+});
 
-function saveTasks(tasks) {
-    tasks = tasks || Array.from(document.querySelectorAll('.task-item')).map(item => ({
-        id: Number(item.dataset.id),
-        title: item.querySelector('.task-title').textContent.trim(),
-        description: item.querySelector('.task-desc')?.textContent.trim() || '',
-        completed: item.querySelector('input').checked
-    }));
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
+clearCompletedBtn.addEventListener('click', clearCompleted);
 
-function refreshTaskList() {
-    const tasks = getTasks();
-    document.getElementById('taskList').innerHTML = '';
-    tasks.forEach(addTaskToDOM);
-    applyFilter();
-}
-
-function clearInputs() {
-    document.getElementById('taskInput').value = '';
-    document.getElementById('taskDesc').value = '';
-}
-
-// Carregar tarefas ao iniciar
-window.onload = () => {
-    getTasks().forEach(addTaskToDOM);
-    applyFilter();
-};
+// Inicializar
+loadTasks();
+render();
