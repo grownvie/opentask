@@ -33,7 +33,7 @@ function init() {
     renderCategories();
     render();
     setupEventListeners();
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
 function loadData() {
@@ -73,6 +73,22 @@ function addCategory() {
         }
     }
 }
+
+// NOVO: apagar categoria por nome (exposto globalmente para o dropdown customizado)
+window.deleteCategoryByName = function (name) {
+    if (!name) return;
+
+    categories = categories.filter(c => c !== name);
+    saveCategories();
+
+    // Tarefas que usavam essa categoria passam a ficar sem categoria
+    tasks = tasks.map(task => task.category === name ? { ...task, category: '' } : task);
+    saveTasks();
+
+    // Reconstrói selects e lista
+    renderCategories();
+    render();
+};
 
 // --- Tasks ---
 function addTask() {
@@ -174,7 +190,7 @@ function render() {
             </li>
         `;
     }).join('');
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
 function escapeHtml(text) {

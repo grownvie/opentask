@@ -92,6 +92,9 @@
     <script src="script.js"></script>
 
     <!-- Script complementar: dropdown customizado de categorias -->
+        <script src="script.js"></script>
+
+    <!-- Script complementar: dropdown customizado de categorias + apagar categorias -->
     <script>
         (function () {
             const ADD_NEW_VALUE = '__new_category__';
@@ -106,6 +109,18 @@
 
                 if (!nativeSelect || !trigger || !display || !optionsPanel || !customSelect) return;
 
+                // Apaga uma categoria (com confirmação)
+                function deleteCategory(name) {
+                    if (!name) return;
+                    if (!confirm(`Apagar a categoria "${name}"?\n\nAs tarefas desta categoria ficarão como "Sem categoria".`)) return;
+
+                    if (typeof window.deleteCategoryByName === 'function') {
+                        window.deleteCategoryByName(name);
+                    }
+                    // Após deletar, script.js já reconstruiu o <select> nativo;
+                    // o MutationObserver vai re-renderizar o dropdown customizado automaticamente.
+                }
+
                 function renderOptions() {
                     optionsPanel.innerHTML = '';
                     Array.from(nativeSelect.options).forEach(opt => {
@@ -113,7 +128,27 @@
                         div.className = 'custom-option';
                         if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
                         div.dataset.value = opt.value;
-                        div.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
+
+                        const label = document.createElement('span');
+                        label.className = 'custom-option-label';
+                        label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
+                        div.appendChild(label);
+
+                        // Botão de apagar somente para categorias reais (exclui "Sem categoria" e "+ Nova Categoria")
+                        if (opt.value && opt.value !== ADD_NEW_VALUE) {
+                            const del = document.createElement('button');
+                            del.type = 'button';
+                            del.className = 'custom-option-delete';
+                            del.title = 'Apagar categoria';
+                            del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
+                            del.innerHTML = '✕';
+                            del.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                deleteCategory(opt.value);
+                            });
+                            div.appendChild(del);
+                        }
+
                         optionsPanel.appendChild(div);
                     });
                 }
@@ -162,6 +197,9 @@
                 });
 
                 optionsPanel.addEventListener('click', (e) => {
+                    // Ignora cliques no botão de apagar (já tratado no listener próprio)
+                    if (e.target.closest('.custom-option-delete')) return;
+
                     const opt = e.target.closest('.custom-option');
                     if (!opt) return;
 
