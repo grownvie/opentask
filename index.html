@@ -1,29 +1,42 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>task.js</title>
+    <title>Afazeres · Adwaita</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
 </head>
 <body>
-    <div class="container">
-        <h1>Lista de Tarefas</h1>
-        
-        <div class="filters">
-            <button class="filter-btn active" onclick="filterTasks('all')">Todas</button>
-            <button class="filter-btn" onclick="filterTasks('completed')">Concluídas</button>
-            <button class="filter-btn" onclick="filterTasks('pending')">Pendentes</button>
-        </div>
+    <main class="app">
+        <header class="app-header">
+            <h1>Afazeres</h1>
+            <p class="subtitle">Organize seu dia com simplicidade</p>
+        </header>
 
-        <div class="input-section">
-            <input type="text" id="taskInput" placeholder="Título da tarefa">
-            <textarea id="taskDesc" placeholder="Descrição da tarefa (opcional)"></textarea>
-            <button onclick="addTask()">Adicionar Tarefa</button>
-        </div>
+        <section class="input-group">
+            <input type="text" id="taskInput" placeholder="O que precisa ser feito?" autocomplete="off">
+            <textarea id="taskDesc" placeholder="Detalhes (opcional)" rows="2"></textarea>
+            <button id="addBtn" class="btn-primary">Adicionar</button>
+        </section>
 
-        <ul class="task-list" id="taskList"></ul>
-    </div>
+        <nav class="filters" aria-label="Filtros">
+            <button class="filter-btn active" data-filter="all">Todas</button>
+            <button class="filter-btn" data-filter="pending">Pendentes</button>
+            <button class="filter-btn" data-filter="completed">Concluídas</button>
+        </nav>
+
+        <section class="search-bar">
+            <input type="search" id="searchInput" placeholder="Buscar tarefas...">
+            <span class="task-counter" id="counter">0 tarefas</span>
+        </section>
+
+        <ul class="task-list" id="taskList" aria-live="polite"></ul>
+
+        <footer class="app-footer">
+            <button id="clearCompleted" class="btn-text">Limpar concluídas</button>
+        </footer>
+    </main>
     <script src="script.js"></script>
 </body>
 </html>
