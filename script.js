@@ -179,13 +179,13 @@ function render() {
                     <div class="task-header">
                         <span class="task-title">${escapeHtml(task.title)}</span>
                         ${dateFormatted ? `<span class="task-date"><i data-lucide="calendar"></i> ${dateFormatted}</span>` : ''}
-                        ${task.category ? `<span class="task-category"><i data-lucide="tag"></i> ${escapeHtml(task.category)}</span>` : ''}
+                        ${task.category ? `<span class="task-category">${escapeHtml(task.category)}</span>` : ''}
                     </div>
                     ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ''}
                 </div>
                 <div class="task-actions">
-                    <button class="btn-edit" onclick="openEditModal('${task.id}')"><i data-lucide="pencil"></i> Editar</button>
-                    <button class="btn-delete" onclick="deleteTask('${task.id}')"><i data-lucide="trash-2"></i></button>
+                    <button class="btn-edit" onclick="openEditModal('${task.id}')" title="Editar" aria-label="Editar tarefa"><i data-lucide="pencil"></i></button>
+                    <button class="btn-delete" onclick="deleteTask('${task.id}')" title="Excluir" aria-label="Excluir tarefa"><i data-lucide="trash-2"></i></button>
                 </div>
             </li>
         `;

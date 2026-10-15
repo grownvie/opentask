@@ -1,23 +1,8 @@
 /* ===== Fallback confiável: Inter do Google Fonts ===== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap');
 
-/* ===== Adwaita Sans — múltiplas fontes para garantir o carregamento ===== */
-@font-face {
-    font-family: 'Adwaita Sans';
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-    src: url('https://fontsapi.zeoseven.com/2209/regular.woff2') format('woff2'),
-         url('https://cdn.jsdelivr.net/gh/GNOME/adwaita-fonts@main/fonts/AdwaitaSans-VariableFont_wght.ttf') format('truetype-variations');
-}
-@font-face {
-    font-family: 'Adwaita Sans';
-    font-style: italic;
-    font-weight: 100 900;
-    font-display: swap;
-    src: url('https://fontsapi.zeoseven.com/2209/italic.woff2') format('woff2'),
-         url('https://cdn.jsdelivr.net/gh/GNOME/adwaita-fonts@main/fonts/AdwaitaSans-Italic-VariableFont_wght.ttf') format('truetype-variations');
-}
+/* ===== Finlandica Text via Google Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
 
 /* ===== Variáveis ===== */
 :root {
@@ -33,7 +18,7 @@
     --radius: 8px;
     --field-height: 56px;
     --pill-height: 44px;
-    --font-ui: 'Adwaita Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-ui: 'Onest', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color-scheme: dark;
 }
 
@@ -123,8 +108,8 @@ button, input, textarea, select, option {
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
     pointer-events: none;
     z-index: 2;
 }
@@ -251,7 +236,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.15);
 }
 
-.custom-select-trigger #categoryDisplay {
+.custom-select-trigger #categoryDisplay,
+.custom-select-trigger #editCategoryDisplay {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -265,8 +251,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
+    width: 16px !important;
+    height: 16px !important;
     color: var(--text-muted);
     transition: transform 0.2s;
     pointer-events: none;
@@ -274,6 +260,36 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .custom-select.open .custom-select-trigger .chevron {
     transform: translateY(-50%) rotate(180deg);
+}
+
+/* ===== Variante compacta (modal de edição) ===== */
+.custom-select.compact .custom-select-trigger {
+    height: 52px;
+    font-size: 0.95rem;
+    padding: 0 2.2rem 0 2.4rem;
+}
+
+.custom-select.compact .input-icon {
+    width: 16px !important;
+    height: 16px !important;
+    left: 0.75rem;
+}
+
+.custom-select.compact .chevron {
+    right: 0.75rem;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+.edit-category-field {
+    position: relative;
+}
+
+/* Alinha o input de data do modal com o trigger compacto */
+.modal .row > .input-wrapper input {
+    height: 52px;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 /* Painel de opções customizado */
@@ -300,7 +316,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .custom-option {
-    padding: 0.65rem 0.9rem;
+    padding: 0.65rem 2.4rem 0.65rem 0.9rem;
     border-radius: 6px;
     font-size: 0.95rem;
     color: var(--text-main);
@@ -309,6 +325,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    position: relative;
+    justify-content: space-between;
 }
 
 .custom-option:hover {
@@ -321,11 +339,54 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     border-top: 1px solid var(--border);
     margin-top: 0.35rem;
     padding-top: 0.75rem;
+    padding-right: 0.9rem;
     border-radius: 0 0 6px 6px;
 }
 
 .custom-option.add-new:hover {
     background: rgba(76, 110, 245, 0.12);
+}
+
+.custom-option-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-option-delete {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+
+.custom-option:hover .custom-option-delete,
+.custom-option:focus-within .custom-option-delete {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.custom-option-delete:hover {
+    background: rgba(255, 77, 77, 0.15);
+    color: #ff4d4d;
 }
 
 .icon-btn-hidden {
@@ -352,7 +413,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 .btn-add:hover { background: var(--accent-hover); }
 .btn-add:active { transform: scale(0.99); }
-.btn-add i { width: 18px; height: 18px; }
+.btn-add svg { width: 18px !important; height: 18px !important; }
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
@@ -365,7 +426,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     min-width: 0;
 }
 
-/* ===== TOP BAR ===== */
 .top-bar {
     display: flex;
     flex-direction: column;
@@ -383,8 +443,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
     pointer-events: none;
 }
 .search-wrapper input {
@@ -410,8 +470,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     align-items: center;
 }
 
-/* ===== Botões-pílula com MESMA altura ===== */
-/* Compartilham altura fixa para ficarem perfeitamente alinhados */
 .filter-btn,
 .btn-clear {
     height: var(--pill-height);
@@ -448,9 +506,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     color: #e01b24;
 }
 
-.btn-clear i {
-    width: 16px;
-    height: 16px;
+.btn-clear svg {
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* ===== TASK LIST ===== */
@@ -478,32 +536,33 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     color: var(--text-muted);
 }
 
+/* ===== Checkbox — tamanho dos botões, cor original ===== */
 .task-checkbox {
     appearance: none;
-    width: 24px;
-    height: 24px;
+    -webkit-appearance: none;
+    width: 28px !important;
+    height: 28px !important;
     border: 2px solid var(--text-muted);
     border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: 0;
     transition: all 0.2s;
     position: relative;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 15px 15px;
 }
-.task-checkbox:hover { border-color: var(--accent); }
-.task-checkbox:checked {
-    background: var(--accent);
+
+.task-checkbox:hover {
     border-color: var(--accent);
 }
-.task-checkbox:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 0.8rem;
-    font-weight: bold;
+
+.task-checkbox:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
 }
 
 .task-content {
@@ -525,21 +584,34 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     color: var(--text-main);
     word-break: break-word;
 }
-.task-date, .task-category {
+
+.task-category {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.task-date {
     font-size: 0.75rem;
     padding: 0.2rem 0.6rem;
     border-radius: 99px;
     background: rgba(255,255,255,0.08);
     color: var(--text-muted);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.3rem;
     font-weight: 500;
 }
-.task-date i, .task-category i {
-    width: 12px;
-    height: 12px;
+.task-date svg {
+    width: 12px !important;
+    height: 12px !important;
 }
+
 .task-desc {
     font-size: 0.9rem;
     color: var(--text-muted);
@@ -553,40 +625,38 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     flex-shrink: 0;
 }
 
+/* ===== Botões de ação — circulares e pequenos ===== */
 .btn-edit, .btn-delete {
-    background: white;
-    color: black;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 99px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s, background 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-.btn-edit i { width: 14px; height: 14px; }
-.btn-edit:hover { opacity: 0.85; }
-
-.btn-delete {
     background: transparent;
     color: var(--text-muted);
     border: 1px solid var(--border);
-    padding: 0.5rem;
+    padding: 0;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 28px !important;
+    height: 28px !important;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s, border-color 0.2s, color 0.2s;
+    flex-shrink: 0;
 }
-.btn-delete i { width: 14px; height: 14px; }
+
+.btn-edit svg,
+.btn-delete svg {
+    width: 12px !important;
+    height: 12px !important;
+    stroke-width: 2;
+}
+
+.btn-edit:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+
 .btn-delete:hover {
     border-color: #e01b24;
     color: #e01b24;
-    background: transparent;
 }
 
 /* ===== MODAL ===== */
@@ -674,58 +744,4 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
     }
     .filters { justify-content: center; }
     .btn-clear { justify-content: center; }
-}
-
-/* ===== Botão de apagar categoria (aparece somente no hover) ===== */
-.custom-option {
-    position: relative;
-    padding-right: 2.4rem;
-    justify-content: space-between;
-}
-
-.custom-option-label {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.custom-option-delete {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 4px;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s, background 0.15s, color 0.15s;
-}
-
-.custom-option:hover .custom-option-delete,
-.custom-option:focus-within .custom-option-delete {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.custom-option-delete:hover {
-    background: rgba(255, 77, 77, 0.15);
-    color: #ff4d4d;
-}
-
-/* A opção "+ Nova Categoria" não tem botão de apagar */
-.custom-option.add-new {
-    padding-right: 0.9rem;
 }

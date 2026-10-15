@@ -6,7 +6,7 @@
     <title>opentask</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -80,7 +80,15 @@
                     <i data-lucide="calendar" class="input-icon"></i>
                     <input type="date" id="editDate">
                 </div>
-                <select id="editCategory" class="flex-2"></select>
+                <div class="custom-select compact edit-category-field flex-2">
+                    <i data-lucide="tag" class="input-icon"></i>
+                    <button type="button" class="custom-select-trigger" id="editCategoryTrigger">
+                        <span id="editCategoryDisplay">Sem categoria</span>
+                        <i data-lucide="chevron-down" class="chevron"></i>
+                    </button>
+                    <select id="editCategory" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+                    <div class="custom-select-options hidden" id="editCategoryOptions"></div>
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="cancelEditBtn" class="btn-cancel">Cancelar</button>
@@ -91,131 +99,97 @@
 
     <script src="script.js"></script>
 
-    <!-- Script complementar: dropdown customizado de categorias -->
-        <script src="script.js"></script>
-
-    <!-- Script complementar: dropdown customizado de categorias + apagar categorias -->
-        <script src="script.js"></script>
-
-    <!-- Script complementar: dropdown customizado de categorias + apagar categorias -->
+    <!-- Script complementar: dropdowns customizados + apagar categorias -->
     <script>
         (function () {
             const ADD_NEW_VALUE = '__new_category__';
-            let nativeSelect, trigger, display, optionsPanel, addBtn, customSelect;
-            let isUpdating = false; // trava para evitar recursão
+
+            /* ---------- Helpers ---------- */
 
             function deleteCategory(name) {
                 if (!name) return;
                 if (!confirm(`Apagar a categoria "${name}"?\n\nAs tarefas desta categoria ficarão como "Sem categoria".`)) return;
-
                 if (typeof window.deleteCategoryByName === 'function') {
                     window.deleteCategoryByName(name);
                 }
             }
 
-            function renderOptions() {
-                optionsPanel.innerHTML = '';
-                Array.from(nativeSelect.options).forEach(opt => {
-                    const div = document.createElement('div');
-                    div.className = 'custom-option';
-                    if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
-                    div.dataset.value = opt.value;
+            function buildOptionElement(opt, showDelete) {
+                const div = document.createElement('div');
+                div.className = 'custom-option';
+                if (opt.value === ADD_NEW_VALUE) div.classList.add('add-new');
+                div.dataset.value = opt.value;
 
-                    const label = document.createElement('span');
-                    label.className = 'custom-option-label';
-                    label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
-                    div.appendChild(label);
+                const label = document.createElement('span');
+                label.className = 'custom-option-label';
+                label.textContent = opt.value === ADD_NEW_VALUE ? '+ Nova Categoria' : opt.textContent;
+                div.appendChild(label);
 
-                    // Botão de apagar só para categorias reais
-                    if (opt.value && opt.value !== ADD_NEW_VALUE) {
-                        const del = document.createElement('button');
-                        del.type = 'button';
-                        del.className = 'custom-option-delete';
-                        del.title = 'Apagar categoria';
-                        del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
-                        del.innerHTML = '✕';
-                        del.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            deleteCategory(opt.value);
-                        });
-                        div.appendChild(del);
+                if (showDelete && opt.value && opt.value !== ADD_NEW_VALUE) {
+                    const del = document.createElement('button');
+                    del.type = 'button';
+                    del.className = 'custom-option-delete';
+                    del.title = 'Apagar categoria';
+                    del.setAttribute('aria-label', `Apagar categoria ${opt.value}`);
+                    del.innerHTML = '✕';
+                    del.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteCategory(opt.value);
+                    });
+                    div.appendChild(del);
+                }
+
+                return div;
+            }
+
+            /* ---------- Fábrica de controller ---------- */
+
+            function createController(cfg) {
+                const { nativeSelect, trigger, display, optionsPanel, container, addBtn, showDelete } = cfg;
+                let isUpdating = false;
+
+                function renderOptions() {
+                    optionsPanel.innerHTML = '';
+                    Array.from(nativeSelect.options).forEach(opt => {
+                        optionsPanel.appendChild(buildOptionElement(opt, showDelete));
+                    });
+                }
+
+                function ensureAddOption() {
+                    if (isUpdating) return;
+                    isUpdating = true;
+                    try {
+                        nativeSelect.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
+                        const option = document.createElement('option');
+                        option.value = ADD_NEW_VALUE;
+                        option.textContent = '+ Nova Categoria';
+                        nativeSelect.appendChild(option);
+                        renderOptions();
+                    } finally {
+                        isUpdating = false;
                     }
-
-                    optionsPanel.appendChild(div);
-                });
-            }
-
-            function ensureAddOption() {
-                // Evita recursão: marca como "em atualização"
-                if (isUpdating) return;
-                isUpdating = true;
-
-                try {
-                    // Remove qualquer "+ Nova Categoria" existente
-                    nativeSelect.querySelectorAll(`option[value="${ADD_NEW_VALUE}"]`).forEach(o => o.remove());
-
-                    // Adiciona ao final
-                    const option = document.createElement('option');
-                    option.value = ADD_NEW_VALUE;
-                    option.textContent = '+ Nova Categoria';
-                    nativeSelect.appendChild(option);
-
-                    // Reconstrói o dropdown customizado
-                    renderOptions();
-                } finally {
-                    isUpdating = false;
                 }
-            }
 
-            function updateDisplay() {
-                const current = nativeSelect.value;
-                if (current === ADD_NEW_VALUE || !current) {
-                    display.textContent = 'Sem categoria';
-                } else {
-                    display.textContent = current;
+                function updateDisplay() {
+                    const current = nativeSelect.value;
+                    if (current === ADD_NEW_VALUE || !current) {
+                        display.textContent = 'Sem categoria';
+                    } else {
+                        display.textContent = current;
+                    }
                 }
-            }
 
-            function openPanel() {
-                optionsPanel.classList.remove('hidden');
-                customSelect.classList.add('open');
-            }
-            function closePanel() {
-                optionsPanel.classList.add('hidden');
-                customSelect.classList.remove('open');
-            }
-            function togglePanel() {
-                optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
-            }
-
-            // Wrapper: quando script.js reconstruir o <select>, reinjetamos a opção especial
-            function installRenderWrapper() {
-                const original = window.renderCategories;
-                if (typeof original !== 'function') return;
-
-                window.renderCategories = function () {
-                    original.apply(this, arguments);
-                    ensureAddOption();
-                    updateDisplay();
-                };
-            }
-
-            function init() {
-                nativeSelect = document.getElementById('taskCategory');
-                trigger = document.getElementById('categoryTrigger');
-                display = document.getElementById('categoryDisplay');
-                optionsPanel = document.getElementById('categoryOptions');
-                addBtn = document.getElementById('addCategoryBtn');
-                customSelect = document.querySelector('.custom-select');
-
-                if (!nativeSelect || !trigger || !display || !optionsPanel || !customSelect) return;
-
-                // Instala o wrapper ANTES de qualquer renderCategories rodar
-                installRenderWrapper();
-
-                // Estado inicial: já temos o <select> populado, basta adicionar a opção
-                ensureAddOption();
-                updateDisplay();
+                function openPanel() {
+                    optionsPanel.classList.remove('hidden');
+                    container.classList.add('open');
+                }
+                function closePanel() {
+                    optionsPanel.classList.add('hidden');
+                    container.classList.remove('open');
+                }
+                function togglePanel() {
+                    optionsPanel.classList.contains('hidden') ? openPanel() : closePanel();
+                }
 
                 trigger.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -232,11 +206,11 @@
 
                     if (value === ADD_NEW_VALUE) {
                         if (addBtn) {
-                            // addBtn.click() → script.js addCategory → prompt → renderCategories (wrapper injeta opção)
                             addBtn.click();
-                            // Sincroniza display após o prompt fechar (síncrono, mas garantimos)
-                            ensureAddOption();
-                            updateDisplay();
+                            setTimeout(() => {
+                                ensureAddOption();
+                                updateDisplay();
+                            }, 0);
                         }
                     } else {
                         nativeSelect.value = value;
@@ -247,10 +221,89 @@
                 });
 
                 document.addEventListener('click', (e) => {
-                    if (!customSelect.contains(e.target)) closePanel();
+                    if (!container.contains(e.target)) closePanel();
                 });
 
                 nativeSelect.addEventListener('change', updateDisplay);
+
+                return { ensureAddOption, updateDisplay };
+            }
+
+            /* ---------- Inicialização ---------- */
+
+            function init() {
+                const mainNativeSelect = document.getElementById('taskCategory');
+                const mainTrigger = document.getElementById('categoryTrigger');
+                const mainDisplay = document.getElementById('categoryDisplay');
+                const mainOptionsPanel = document.getElementById('categoryOptions');
+                const mainAddBtn = document.getElementById('addCategoryBtn');
+                const mainContainer = document.querySelector('.custom-select.category-field');
+
+                if (!mainNativeSelect || !mainTrigger || !mainDisplay || !mainOptionsPanel || !mainContainer) return;
+
+                const mainCtrl = createController({
+                    nativeSelect: mainNativeSelect,
+                    trigger: mainTrigger,
+                    display: mainDisplay,
+                    optionsPanel: mainOptionsPanel,
+                    container: mainContainer,
+                    addBtn: mainAddBtn,
+                    showDelete: true
+                });
+
+                const editNativeSelect = document.getElementById('editCategory');
+                const editTrigger = document.getElementById('editCategoryTrigger');
+                const editDisplay = document.getElementById('editCategoryDisplay');
+                const editOptionsPanel = document.getElementById('editCategoryOptions');
+                const editContainer = document.querySelector('.custom-select.edit-category-field');
+
+                let editCtrl = null;
+                if (editNativeSelect && editTrigger && editDisplay && editOptionsPanel && editContainer) {
+                    editCtrl = createController({
+                        nativeSelect: editNativeSelect,
+                        trigger: editTrigger,
+                        display: editDisplay,
+                        optionsPanel: editOptionsPanel,
+                        container: editContainer,
+                        addBtn: mainAddBtn,
+                        showDelete: true
+                    });
+                }
+
+                /* Wrapper: reinjeta a opção especial quando script.js reconstruir os <select> */
+                function installRenderWrapper() {
+                    const original = window.renderCategories;
+                    if (typeof original !== 'function') return;
+
+                    window.renderCategories = function () {
+                        original.apply(this, arguments);
+                        mainCtrl.ensureAddOption();
+                        mainCtrl.updateDisplay();
+                        if (editCtrl) {
+                            editCtrl.ensureAddOption();
+                            editCtrl.updateDisplay();
+                        }
+                    };
+                }
+
+                installRenderWrapper();
+
+                /* Estado inicial */
+                mainCtrl.ensureAddOption();
+                mainCtrl.updateDisplay();
+                if (editCtrl) {
+                    editCtrl.ensureAddOption();
+                    editCtrl.updateDisplay();
+                }
+
+                /* Wrapper: sincroniza o display do modal ao abrir */
+                if (editCtrl && typeof window.openEditModal === 'function') {
+                    const originalOpen = window.openEditModal;
+                    window.openEditModal = function (id) {
+                        originalOpen(id);
+                        editCtrl.updateDisplay();
+                    };
+                }
 
                 if (window.lucide) window.lucide.createIcons();
             }
